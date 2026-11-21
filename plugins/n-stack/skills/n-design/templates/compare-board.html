@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design board — {{SCREEN_NAME}}</title>
+<style>
+  :root { --bg:#f6f6f4; --surface:#fff; --text:#1b1b18; --muted:#6b6b63; --line:#e3e3dd; --accent:#1f5eff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141413; --surface:#1e1e1c; --text:#ecece6; --muted:#a0a097; --line:#33332f; --accent:#7aa2ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:18px; margin:0; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; }
+  button { font:inherit; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--text); cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); font-weight:600; }
+  main { display:grid; gap:16px; padding:16px; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .meta { padding:12px 14px; border-bottom:1px solid var(--line); }
+  .meta strong { display:block; }
+  .meta span { color:var(--muted); font-size:13px; }
+  .frame-wrap { display:flex; justify-content:center; background:var(--bg); padding:12px; }
+  iframe { border:1px solid var(--line); border-radius:8px; background:#fff; width:100%; height:720px; }
+  body.mobile iframe { width:390px; height:780px; }
+  .meta a { font-size:13px; color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{SCREEN_NAME}}: compare directions</h1>
+  <div class="controls" role="group" aria-label="Viewport">
+    <button data-vp="desktop" aria-pressed="true">Desktop</button>
+    <button data-vp="mobile" aria-pressed="false">Mobile 390</button>
+  </div>
+  <div class="controls" role="group" aria-label="State">
+    <button data-state="" aria-pressed="true">Default</button>
+    <button data-state="empty" aria-pressed="false">Empty</button>
+    <button data-state="loading" aria-pressed="false">Loading</button>
+    <button data-state="error" aria-pressed="false">Error</button>
+  </div>
+</header>
+<main>
+  <!-- One card per variant. Fill name + bet. -->
+  <section class="card">
+    <div class="meta"><strong>A — {{VARIANT_A_NAME}}</strong><span>{{VARIANT_A_BET}}</span> · <a href="option-a.html" target="_blank">open</a></div>
+    <div class="frame-wrap"><iframe src="option-a.html" title="Option A"></iframe></div>
+  </section>
+  <section class="card">
+    <div class="meta"><strong>B — {{VARIANT_B_NAME}}</strong><span>{{VARIANT_B_BET}}</span> · <a href="option-b.html" target="_blank">open</a></div>
+    <div class="frame-wrap"><iframe src="option-b.html" title="Option B"></iframe></div>
+  </section>
+  <section class="card">
+    <div class="meta"><strong>C — {{VARIANT_C_NAME}}</strong><span>{{VARIANT_C_BET}}</span> · <a href="option-c.html" target="_blank">open</a></div>
+    <div class="frame-wrap"><iframe src="option-c.html" title="Option C"></iframe></div>
+  </section>
+</main>
+<script>
+  const frames = [...document.querySelectorAll('iframe')];
+  const base = frames.map(f => f.getAttribute('src'));
+  function press(group, btn) {
+    document.querySelectorAll(`[data-${group}]`).forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  }
+  document.querySelectorAll('[data-vp]').forEach(b => b.addEventListener('click', () => {
+    press('vp', b); document.body.classList.toggle('mobile', b.dataset.vp === 'mobile');
+  }));
+  document.querySelectorAll('[data-state]').forEach(b => b.addEventListener('click', () => {
+    press('state', b);
+    frames.forEach((f, i) => { f.src = base[i] + (b.dataset.state ? `?state=${b.dataset.state}` : ''); });
+  }));
+</script>
+</body>
+</html>

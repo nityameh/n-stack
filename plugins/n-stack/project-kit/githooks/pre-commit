@@ -1,0 +1,30 @@
+#!/bin/sh
+# managed by n-stack — refresh with `nstack-project update`
+# Runs on every `git commit` (yours and Claude's). Costs no tokens.
+#   1. refuses to commit .env files
+#   2. scans the staged changes for secrets with gitleaks
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+envs=$(printf '%s\n' "$staged" | grep -E '(^|/)\.env($|\.)' | grep -vE '\.env\.(example|sample|template|defaults)$')
+if [ -n "$envs" ]; then
+  echo "n-stack pre-commit: refusing to commit secret env file(s):"
+  printf '  %s\n' $envs
+  echo "Unstage with: git restore --staged <file>   (and make sure it is in .gitignore)"
+  exit 1
+fi
+
+if command -v gitleaks >/dev/null 2>&1; then
+  if gitleaks git --help >/dev/null 2>&1; then
+    gitleaks git --pre-commit --staged --redact --no-banner || { echo "n-stack pre-commit: gitleaks found a secret in staged changes (see above)."; exit 1; }
+  else
+    gitleaks protect --staged --redact --no-banner || { echo "n-stack pre-commit: gitleaks found a secret in staged changes (see above)."; exit 1; }
+  fi
+elif [ "${NSTACK_ALLOW_NO_GITLEAKS:-}" = "1" ]; then
+  echo "n-stack pre-commit: WARNING gitleaks not installed; secrets scan skipped."
+else
+  echo "n-stack pre-commit: gitleaks is not installed, so staged changes can't be scanned for secrets."
+  echo "  Install: winget install gitleaks   |   brew install gitleaks"
+  echo "  One-off bypass: NSTACK_ALLOW_NO_GITLEAKS=1 git commit ..."
+  exit 1
+fi
+exit 0

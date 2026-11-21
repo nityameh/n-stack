@@ -1,0 +1,17 @@
+{
+  "$comment": "n-stack project config. /n-init fills these in; edit freely. Commands run through the platform shell (cmd.exe on Windows), so keep them simple.",
+  "verify": "",
+  "verifyTimeoutSec": 600,
+  "stopVerify": true,
+  "format": {},
+  "fileChecks": {},
+  "fileCheckTimeoutSec": 60,
+  "static": [],
+  "mutation": "",
+  "tasks": "github",
+  "testFirst": "ask",
+  "learning": true,
+  "requireQa": true,
+  "security": "ask",
+  "migrationPaths": "(^|/)(migrations?|alembic/versions|db/migrate|prisma/migrations)/|\\.sql$"
+}

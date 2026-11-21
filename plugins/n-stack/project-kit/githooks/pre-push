@@ -1,0 +1,33 @@
+#!/bin/sh
+# managed by n-stack — refresh with `nstack-project update`
+# Runs on every `git push`. Costs no tokens.
+#   1. scans every commit being pushed for secrets (gitleaks)
+#   2. runs the project's verify command, so red code never leaves the machine
+# Bypass verify once (e.g. pushing a WIP backup branch): NSTACK_SKIP_VERIFY=1 git push
+
+zero=0000000000000000000000000000000000000000
+if command -v gitleaks >/dev/null 2>&1; then
+  while read -r local_ref local_sha remote_ref remote_sha; do
+    [ "$local_sha" = "$zero" ] && continue
+    if [ "$remote_sha" = "$zero" ]; then range="$local_sha --not --remotes"; else range="$remote_sha..$local_sha"; fi
+    if gitleaks git --help >/dev/null 2>&1; then
+      gitleaks git --log-opts="$range" --redact --no-banner </dev/null || { echo "n-stack pre-push: secret found in commits being pushed."; exit 1; }
+    else
+      gitleaks detect --log-opts="$range" --redact --no-banner </dev/null || { echo "n-stack pre-push: secret found in commits being pushed."; exit 1; }
+    fi
+  done
+else
+  echo "n-stack pre-push: WARNING gitleaks not installed; pushed commits were not scanned for secrets."
+fi
+
+if [ "${NSTACK_SKIP_VERIFY:-}" = "1" ]; then
+  echo "n-stack pre-push: verify skipped (NSTACK_SKIP_VERIFY=1)."
+  exit 0
+fi
+
+verify=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('.n-stack/config.json','utf8'));process.stdout.write(c.verify||'')}catch(e){}")
+if [ -n "$verify" ]; then
+  echo "n-stack pre-push: running verify: $verify"
+  sh -c "$verify" || { echo "n-stack pre-push: verify failed; push blocked. Fix it, or NSTACK_SKIP_VERIFY=1 for a WIP push."; exit 1; }
+fi
+exit 0

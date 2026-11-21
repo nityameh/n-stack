@@ -1,0 +1,12 @@
+{
+  "name": "n-stack",
+  "owner": { "name": "nityameh" },
+  "metadata": { "description": "Personal AI-first development lifecycle plugins for Claude Code." },
+  "plugins": [
+    {
+      "name": "n-stack",
+      "source": "./plugins/n-stack",
+      "description": "Full lifecycle: ideate, plan, architect, design, build, debug, review, test, secure, docs, ship, retro, with model routing and enforced quality gates."
+    }
+  ]
+}

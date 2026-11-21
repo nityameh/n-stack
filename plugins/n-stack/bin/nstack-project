@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// n-stack CLI shim (CommonJS so it runs without a file extension). Logic: lib/cli.mjs
+const { pathToFileURL } = require('url');
+const path = require('path');
+import(pathToFileURL(path.join(__dirname, '..', 'lib', 'cli.mjs')).href)
+  .then((m) => m.run('project', process.argv.slice(2)))
+  .catch((e) => { console.error(e.message); process.exit(1); });
