@@ -1,0 +1,24 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check scripts
+        run: |
+          for f in plugins/n-stack/{lib,hooks}/*.mjs plugins/n-stack/project-kit/n-stack/bin/*.mjs; do node --check "$f"; done
+      - name: Harness tests
+        run: node --test plugins/n-stack/test/harness.test.mjs

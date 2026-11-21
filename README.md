@@ -1,10 +1,31 @@
 # n-stack
 
-A personal software-development system for Claude Code, packaged as a plugin. It turns one
-builder into a disciplined team — YC partner, PM, architect, designer, engineers, staff
-reviewer, QA, security, release engineer — routes each job to the cheapest model that does
-it reliably, and **enforces** quality with hooks and scripts instead of hoping the model
-remembers.
+[![tests](https://github.com/nityameh/n-stack/actions/workflows/test.yml/badge.svg)](https://github.com/nityameh/n-stack/actions/workflows/test.yml)
+
+**AI coding assistants forget rules. n-stack makes the rules code.**
+
+When you tell an AI agent "never read `.env`" or "don't skip failing tests", that is a
+suggestion in a prompt, and long sessions erode it. n-stack is a
+[Claude Code](https://claude.com/claude-code) plugin that turns those rules into hooks and
+scripts that run on every tool call, so the agent *cannot* break them. It also gives the
+agent a structured workflow (idea → plan → build → review → ship), with each job routed to
+the cheapest model that does it reliably.
+
+Here is the guard hook blocking three real violations. Each is a hook exiting with code 2,
+and Claude Code feeds the message back to the model so it can correct itself:
+
+```text
+$ echo '{"tool_name":"Read","tool_input":{"file_path":".env"}, ...}' | node hooks/guard.mjs
+n-stack guard (secret-file): .env holds secrets and is off limits to agents. Use .env.example
+for variable names; ask the user to set values.                                    # exit 2
+
+n-stack guard (test-skip): this edit adds 1 skipped/focused/todo test marker(s) to
+src/money.test.ts. Fix the code or the test instead. If skipping is truly intended, ask the
+user to create .n-stack/allow-weaken.                                              # exit 2
+
+n-stack guard (read-only-agent): n-scout is a read-only agent; it may not use Edit.
+Report findings instead.                                                           # exit 2
+```
 
 Inspired by [gstack](https://github.com/garrytan/gstack). Different priorities:
 
@@ -79,6 +100,7 @@ Requirements: Claude Code, Git (+ Git Bash on Windows), Node.js 18+, `gh` (logge
 Start Claude Code **from a terminal** in the project, pointing it at the plugin folder:
 
 ```bash
+git clone https://github.com/nityameh/n-stack ~/n-stack
 cd ~/projects/<project>
 claude --plugin-dir ~/n-stack/plugins/n-stack
 ```
@@ -105,6 +127,33 @@ When that works, install with `/plugin marketplace add <path>` and
 - Test a hook: pipe sample JSON to it, e.g.
   `echo '{"cwd":"<repo>","tool_name":"Read","tool_input":{"file_path":".env"}}' | node plugins/n-stack/hooks/guard.mjs; echo $?`
 - Evidence for what to change: `/n-retro` ([docs/evidence-loop.md](docs/evidence-loop.md)).
+
+## Design decisions
+
+- **Hooks, not prompts, for anything that must always hold.** A prompt is probabilistic; a hook
+  is a process with an exit code. Prose is for judgment calls, scripts are for rules.
+- **Fail safe, never crash.** Hooks wrap risky work in try/catch, stay quiet on success, and
+  do nothing outside projects that opted in via `.n-stack/config.json`.
+- **Every loop has a budget and an exit to the human.** Verify-and-fix loops are bounded; the
+  stop gate blocks a bounded number of times, then hands control back instead of spinning.
+- **Dependency-free Node.** Hooks and CLIs use only the standard library, so there is nothing
+  to install and nothing to supply-chain.
+- **Tested like production code.** Each test builds a throwaway git repo and drives the real
+  hooks and gate, including edge cases such as review coverage surviving a rebase. Every bug
+  fixed in a hook gets a test first.
+- **Stages hand off through files and issues, not chat history,** so any session can resume.
+
+## Known limitations
+
+- Developed and tested mainly on Windows; CI runs on Linux. Commands in `config.json` run
+  through the platform shell, so keep them simple.
+- The test suite covers the deterministic parts (hooks, gate, docs drift, code map). The
+  skill and agent prompts are not automatically tested. `/n-retro` is meant to supply that
+  evidence over time.
+- Cost figures in [docs/model-routing.md](docs/model-routing.md) and
+  [docs/n-kit-spec.md](docs/n-kit-spec.md) are design estimates, not measurements.
+- n-kit, the lightweight edition in the spec, is **not built yet**.
+- `/plugin install` from a local marketplace is currently broken in Claude Code (see Install).
 
 ## Docs
 

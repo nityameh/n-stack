@@ -1,7 +1,7 @@
 {
   "name": "n-stack",
   "owner": { "name": "nityameh" },
-  "metadata": { "description": "Personal AI-first development lifecycle plugins for Claude Code." },
+  "metadata": { "description": "AI-first development lifecycle plugin for Claude Code: workflow skills, model-routed subagents, and hooks that enforce quality gates." },
   "plugins": [
     {
       "name": "n-stack",
