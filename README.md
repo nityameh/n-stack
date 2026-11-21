@@ -65,7 +65,6 @@ scratch-only writes) · `n-planner` (opus, read-only).
 | Before each tool call | Guard: no secrets; no skipped tests / removed assertions / new suppressions; read-only agents stay read-only; frozen tests stay frozen |
 | After each edit | Formatter + fast per-file check; failures go straight back to Claude |
 | Before Claude finishes | Verify must be green on the changed code (cached; doc-only skips) |
-| Parallel agent worktrees | Based on your current branch, outside the repo, `node_modules` linked |
 | `git commit` / `git push` | No `.env` commits; gitleaks; verify before push |
 | Pull request | CI: verify, e2e, gitleaks, ship gate (make them required checks) |
 
@@ -77,17 +76,23 @@ loaded only when a tool is actually called). Optional, added per user: Sentry, F
 Requirements: Claude Code, Git (+ Git Bash on Windows), Node.js 18+, `gh` (logged in),
 [gitleaks](https://github.com/gitleaks/gitleaks) (`winget install gitleaks` / `brew install gitleaks`).
 
-In Claude Code:
+Start Claude Code **from a terminal** in the project, pointing it at the plugin folder:
 
+```bash
+cd ~/projects/<project>
+claude --plugin-dir ~/n-stack/plugins/n-stack
 ```
-/plugin marketplace add C:\Users\<you>\n-stack
-/plugin install n-stack@n-stack
-```
 
-Restart Claude Code. Then in a project: `/n-init`, and `/nstack` whenever you're unsure.
+That loads n-stack for this session only (selective by design), straight from this folder,
+so edits to n-stack are live in the next session: no cache, no version bump. Then
+`/n-init`, and `/nstack` whenever you're unsure.
 
-The marketplace points at this folder, so the plugin runs **in place**: edit a skill here,
-restart (or `/reload-plugins`), and the change is live. No copying, no reinstall.
+**Why not `/plugin install`?** As of Claude Code 2.1.327, a plugin installed from a *local
+folder* marketplace is registered and shown as enabled but never loaded (no skills, agents
+or hooks), in both the CLI and the VS Code extension. Check with
+`claude -p "ok" --debug-file d.txt` and look for `Loaded 15 skills from plugin n-stack`.
+When that works, install with `/plugin marketplace add <path>` and
+`/plugin install n-stack@n-stack --scope project`.
 
 ## Editing and extending
 

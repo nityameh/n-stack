@@ -18,8 +18,8 @@ failing example** (a transcript excerpt, a bad output, a retro number). No examp
 the expected behaviour as a test case first.
 
 Where it lives:
-- n-stack itself → `~/n-stack/plugins/n-stack/` (skills/, agents/, hooks/, lib/). The plugin
-  loads in place from there; restart Claude Code (or `/reload-plugins`) to pick up edits.
+- n-stack itself → `~/n-stack/plugins/n-stack/` (skills/, agents/, hooks/, lib/). Claude Code
+  is loaded with `claude --plugin-dir ~/n-stack/plugins/n-stack`, straight from this folder: edits apply in the next session.
 - One project only → `<project>/.claude/skills/<name>/` or a `CLAUDE.md` line.
 
 ## 2. Lowest level that fixes it

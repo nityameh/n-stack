@@ -118,6 +118,5 @@ knows what can run, what can run in parallel, and what is blocked.
     ([docs/artifact-graph.md](docs/artifact-graph.md)). `/nstack` walks it to find the next step.
   - The **task graph** as GitHub issues: each has dependencies, files, a model label,
     acceptance criteria and a verify command. `nstack-tasks` computes what's ready and
-    checks for cycles; `/n-build` runs ready tasks, in parallel worktrees when their files
-    don't overlap.
+    checks for cycles; `/n-build` runs ready tasks one at a time, in dependency order.
   - The **review fan-out**: big diffs split by area into parallel reviewers, results merged.

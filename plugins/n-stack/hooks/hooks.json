@@ -23,11 +23,6 @@
         "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-verify.mjs\"", "timeout": 900 }]
       }
     ],
-    "WorktreeCreate": [
-      {
-        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/worktree-create.mjs\"", "timeout": 300 }]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/log-activity.mjs\"", "timeout": 15 }]

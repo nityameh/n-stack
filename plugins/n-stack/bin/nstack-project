@@ -1,7 +1,7 @@
-#!/usr/bin/env node
-// n-stack CLI shim (CommonJS so it runs without a file extension). Logic: lib/cli.mjs
-const { pathToFileURL } = require('url');
-const path = require('path');
-import(pathToFileURL(path.join(__dirname, '..', 'lib', 'cli.mjs')).href)
-  .then((m) => m.run('project', process.argv.slice(2)))
-  .catch((e) => { console.error(e.message); process.exit(1); });
+#!/bin/sh
+# n-stack CLI shim. Git Bash on Windows gives scripts /c/... paths that native node.exe
+# can't open, so convert with cygpath when it exists (it's absent on macOS/Linux).
+here=$(cd "$(dirname "$0")" && pwd)
+entry="$here/../lib/main.cjs"
+if command -v cygpath >/dev/null 2>&1; then entry=$(cygpath -w "$entry"); fi
+exec node "$entry" project "$@"

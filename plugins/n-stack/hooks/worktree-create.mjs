@@ -1,3 +1,6 @@
+// NOT REGISTERED in hooks.json: Claude Code versions before WorktreeCreate support reject the
+// whole hooks file over one unknown event, disabling every guardrail. Re-register it (and
+// re-enable parallel mode in /n-build) once all your Claude Code installs support it.
 // WorktreeCreate: replaces Claude Code's default worktree creation so a parallel
 // implementer starts from the CURRENT commit of your feature branch (the default
 // starts from the default branch and would miss earlier tasks' commits).

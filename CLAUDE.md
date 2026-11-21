@@ -12,7 +12,7 @@ Read `README.md` for the map, `ETHOS.md` for the principles.
 - Validate the plugin: `claude plugin validate ./plugins/n-stack`
 - Syntax-check scripts: `for f in plugins/n-stack/{lib,hooks}/*.mjs plugins/n-stack/project-kit/n-stack/bin/*.mjs; do node --check "$f"; done`
 - Test a hook: pipe sample JSON on stdin, check the exit code (2 = block, 0 = allow).
-- After editing: restart Claude Code or `/reload-plugins` (the plugin loads in place).
+- After editing: start a new `claude --plugin-dir ~/n-stack/plugins/n-stack` session; it reads this folder directly.
 
 ## Rules
 

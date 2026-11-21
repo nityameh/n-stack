@@ -23,6 +23,9 @@ nstack-tasks ready 2>&1 | tail -6
 
 | State | Next |
 |---|---|
+| New project (no source code yet) and no `idea.md` | `/n-ideate` (`/n-init` comes after `/n-architect` picks the stack) |
+| New project with `idea.md` but no `prd.md` | `/n-plan` |
+| New project with `prd.md` but no `architecture/overview.md` | `/n-architect` |
 | No `.n-stack/config.json` or no `verify` in it | `/n-init` |
 | An idea but no `idea.md` | `/n-ideate` |
 | `idea.md` but no `prd.md` or no `n-task` issues | `/n-plan` |

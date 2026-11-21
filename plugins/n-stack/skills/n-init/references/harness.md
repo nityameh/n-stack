@@ -12,7 +12,6 @@ including ones you make by hand).
 | Before every Read/Edit/Write/Bash | Secrets off limits; no skipped tests, removed assertions or new suppressions; read-only agents stay read-only; frozen tests stay frozen | plugin `PreToolUse` guard |
 | After every Edit/Write | Format + per-file check; failures shown to Claude immediately | plugin `PostToolUse` |
 | Before Claude ends a turn | Verify must be green on changed code (cached; doc-only changes skip) | plugin `Stop` |
-| Subagent worktree | Created from the current branch, node_modules linked | plugin `WorktreeCreate` |
 | `git commit` | Refuse `.env`; gitleaks on staged changes | `.githooks/pre-commit` |
 | `git push` | gitleaks on pushed commits; verify | `.githooks/pre-push` |
 | Pull request | verify, e2e, gitleaks, ship gate | `.github/workflows/n-stack-ci.yml` |

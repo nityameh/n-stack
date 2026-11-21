@@ -220,4 +220,14 @@ test('code map: small repos inline, large repos split into an index + areas', as
   assert.ok(fs.existsSync(path.join(big, '.n-stack/tmp/codemap/pkg1__mod.md')));
 });
 
+test('bin shims run from any shell path form (Git Bash /c/... paths included)', (t) => {
+  if (spawnSync('sh', ['-c', 'true']).status !== 0) return t.skip('no sh on PATH');
+  const root = makeRepo();
+  const shim = path.join(PLUGIN, 'bin', 'nstack-docs').replace(/\\/g, '/');
+  // MSYS_NO_PATHCONV=1 is the case that broke: node then receives the raw /c/... path.
+  const r = spawnSync('sh', [shim, 'check'], { cwd: root, encoding: 'utf8', env: { ...ENV, MSYS_NO_PATHCONV: '1' } });
+  assert.doesNotMatch(`${r.stdout}${r.stderr}`, /MODULE_NOT_FOUND|Cannot find module/);
+  assert.match(r.stdout, /nstack-doc marker|ok|stale|unverified/);
+});
+
 function pathToFile(p) { return new URL(`file:///${p.replace(/\\/g, '/').replace(/^\//, '')}`).href; }
