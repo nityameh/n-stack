@@ -1,6 +1,6 @@
 {
   "name": "n-stack",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "AI-first development lifecycle: skills for every stage, model-routed subagents, and hooks that enforce verify, secret and test-integrity gates.",
   "author": { "name": "nityameh" },
   "license": "MIT",

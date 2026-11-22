@@ -89,6 +89,16 @@ scratch-only writes) · `n-planner` (opus, read-only).
 | `git commit` / `git push` | No `.env` commits; gitleaks; verify before push |
 | Pull request | CI: verify, e2e, gitleaks, ship gate (make them required checks) |
 
+## Token budget
+
+Built in, not left to discipline (details in [docs/model-routing.md](docs/model-routing.md)):
+
+- `testFirst: auto` — only tasks labeled `tdd` (logic-heavy) get a separate test-writer run.
+- `sessionTaskBudget: 3` — `/n-build` stops after 3 tasks and says `/clear`.
+- `nstack-diff` — per-task check opens only the risky files; verify covers the rest.
+- Reviews never run inside build sessions: `/n-review` once per milestone, in a fresh session.
+- `learning: true` stays on by default (it is the point); set it `false` for throwaway projects.
+
 Bundled MCP servers: **Playwright** (browser QA) and **Context7** (current library docs,
 loaded only when a tool is actually called). Optional, added per user: Sentry, Figma.
 

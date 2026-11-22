@@ -53,7 +53,11 @@ Main session: **Opus** (it orchestrates and reasons). On a cheaper main session,
 | Re-discovering project state each session | SessionStart hook prints it (zero tokens to compute) |
 | Verifying by reading | Commands verify; the model reads only failures |
 | Review re-finding lint issues | Static tools run first; reviewer told not to repeat them |
-| Long sessions dragging old context | Stop after ~6 tasks; state lives in GitHub + git |
+| Long sessions dragging old context (re-billed every turn) | `/n-build` stops after `sessionTaskBudget` (default 3) tasks and says `/clear`; state lives in GitHub + git |
+| Opening every changed file to check a small task | `nstack-diff` prints the stat table and only the files worth opening (out of scope, risky path, migration, dependencies, large, shrunk tests); the rest is covered by verify |
+| Review findings piling into a build conversation | `/n-build` never dispatches the reviewer; `/n-review` runs once per milestone in a fresh session and keeps full findings in `docs/reviews/` |
+| A test-writer subagent on mechanical tasks | `testFirst: auto`: only tasks labeled `tdd` (logic-heavy) get test-first |
+| Learning entries (one doc per task) | Kept on deliberately: it is the learning feature. `learning: false` is for throwaway projects |
 | Skill text loaded every run | Short SKILL.md; detail in `references/` loaded on demand |
 
 Measure it: `nstack-retro --cost` (ccusage) and the event counts in `/n-retro`.

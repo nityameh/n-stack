@@ -18,7 +18,8 @@ or suppressions, no secrets, and you cannot end a turn while verify is red.
 - `git status --short`. Uncommitted changes that aren't ours → ask. On the default branch →
   `git switch -c feat/<milestone-or-story>`.
 - `.n-stack/config.json` must have `verify`. None → `/n-init`. Red already → `/n-debug` first.
-- Read `testFirst` and `learning` from the config; ask once per session if `testFirst` is `ask`.
+- Read `testFirst`, `learning` and `sessionTaskBudget` (default 3) from the config; ask once
+  per session if `testFirst` is `ask`.
 
 ## 1. Pick the batch
 
@@ -46,9 +47,13 @@ paths (pattern to copy, architecture/design sections, `final.html` for UI), conv
 verify, out of scope, frozen tests, learning path. **Paths, never pasted file contents.**
 Can't fill it precisely → the task is under-specified → it becomes an `opus` task.
 
-## 4. Test-first (when on)
+## 4. Test-first (only where it pays)
 
-Dispatch `n-stack:n-test-writer` with the acceptance criteria and interface. Check its tests
+A test-writer dispatch is a whole extra subagent, so it is not free. `testFirst`: `auto`
+(default) → only tasks labeled `tdd` (logic: filters, calculations, permissions, parsing,
+state machines); mechanical tasks skip it and the implementer writes tests with the code.
+`always` → every task · `never` → none · `ask` → ask once. When on for this task, dispatch
+`n-stack:n-test-writer` with the acceptance criteria and interface. Check its tests
 fail for the right reason. Freeze them: write their paths as a JSON array to
 `.n-stack/tmp/protected-tests.json` (the guard then blocks the implementer from editing
 them). Pass them to the implementer as "Frozen tests". Clear the file after the task.
@@ -62,9 +67,11 @@ hook is re-enabled; see `hooks/worktree-create.mjs`.)
 
 ## 6. Verify loop (bounded)
 
-1. **Check, don't trust the report.** Run the task verify and the project verify. Skim the
-   diff for scope creep and standards violations (this is the per-task Opus check; the full
-   Opus review runs per branch in `/n-review`).
+1. **Check, don't trust the report.** Run the task verify and the project verify, then
+   `nstack-diff --scope <the brief's files>`. It prints the stat table and the few files worth
+   opening (out of scope, risky path, migration, dependencies, large, shrunk tests). Open
+   **only those**; the rest is covered by verify. Never dispatch `n-staff-reviewer` from here:
+   the full review runs once per milestone in `/n-review`, in a fresh session.
 2. Red with > 30 lines of output → save it to `.n-stack/tmp/logs/<n>.log`, dispatch
    `n-stack:n-log-triager` on the path. Haiku only reports what the log says; **you** form the
    root-cause hypotheses and decide the fix. Send the fix direction back to the same
@@ -83,8 +90,9 @@ hook is re-enabled; see `hooks/worktree-create.mjs`.)
 
 ## 8. Continue or stop
 
-Loop to step 1 until the milestone is done, a task blocks, or ~6 tasks are done (then
-suggest a fresh session; GitHub and git hold all state). At milestone end: write
+Loop to step 1 until the milestone is done, a task blocks, or `sessionTaskBudget` tasks are
+done. Then stop and tell the user to `/clear` (every file read and subagent report stays in
+context and is re-billed on each later turn; GitHub and git hold all state). At milestone end: write
 `docs/learning/<milestone>-summary.md` (what was built, the concepts that recurred, what to
 study next) if learning is on, and run `nstack-docs check`.
 
@@ -93,5 +101,5 @@ study next) if learning is on, and run `nstack-docs check`.
 ```
 DONE: #12 (sonnet), #13 (opus) · BLOCKED: #14 — <reason>
 VERIFY: green · COMMITS: <n> on <branch> · LEARNING: docs/learning/…
-NEXT: /n-review (milestone complete) · /n-build (more ready)
+NEXT: /clear, then /n-review (milestone complete) · /clear, then /n-build (more ready)
 ```

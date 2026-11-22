@@ -15,6 +15,7 @@ const LABELS = [
   ['model:sonnet', '1d76db', 'well-specified — Sonnet'],
   ['model:opus', 'b60205', 'novel or risky — Opus'],
   ['model:me', 'fbca04', 'learning task — you build it, n-stack reviews'],
+  ['tdd', 'bfd4f2', 'logic-heavy: write failing tests first (testFirst: auto)'],
   ['size:S', 'ededed', '< 20 min agent time'],
   ['size:M', 'ededed', '< 1 h agent time'],
   ['status:doing', '0e8a16', 'in progress'],
@@ -48,6 +49,7 @@ export function parseTask(issue) {
     deps,
     model: (labels.find((l) => l.startsWith('model:')) || 'model:?').slice(6),
     size: (labels.find((l) => l.startsWith('size:')) || 'size:?').slice(5),
+    tdd: labels.includes('tdd'),
     status: issue.state === 'CLOSED' ? 'done' : (labels.find((l) => STATUS.includes(l)) || 'status:todo').slice(7),
     milestone: issue.milestone?.title || null,
     author: issue.author?.login || null,
@@ -137,7 +139,7 @@ function body(task, numberOf) {
   const code = (xs) => (xs || []).map((x) => `\`${x}\``).join(', ') || '(to be decided)';
   return [
     `<!-- n-task: ${task.id} -->`,
-    `**Model:** ${task.model} · **Size:** ${task.size || 'S'} · **Stories:** ${(task.stories || []).join(', ') || '—'}`,
+    `**Model:** ${task.model} · **Size:** ${task.size || 'S'}${task.tdd ? ' · **TDD**' : ''} · **Stories:** ${(task.stories || []).join(', ') || '—'}`,
     `**Depends on:** ${deps.length ? deps.join(', ') : 'none'}`,
     '',
     `**Files:** ${code(task.files)}`,
@@ -207,6 +209,7 @@ export function createFromSpec(cwd, specPath, { dryRun = false } = {}) {
     fs.writeFileSync(bodyFile, body(t, numberOf));
     const args = ['issue', 'create', '--title', `[${t.id}] ${t.title}`, '--body-file', bodyFile,
       '--label', 'n-task', '--label', `model:${t.model}`, '--label', `size:${t.size || 'S'}`];
+    if (t.tdd) args.push('--label', 'tdd');
     if (t.milestone && milestoneTitle.has(t.milestone)) args.push('--milestone', milestoneTitle.get(t.milestone));
     const url = ghOk(args, { cwd }).trim();
     const num = Number((url.match(/\/issues\/(\d+)/) || [])[1]);

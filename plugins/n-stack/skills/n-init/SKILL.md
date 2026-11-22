@@ -40,7 +40,8 @@ Read `${CLAUDE_SKILL_DIR}/references/config.md` for every field. The essentials:
 - `static` — whole-repo analyzers for `/n-review` (Semgrep, knip, jscpd, dependency-cruiser…),
   only tools that are installed or one `npx` away.
 - `mutation` — e.g. Stryker / mutmut, if the user wants mutation testing.
-- `learning`, `testFirst`, `requireQa`, `security` — ask once, with recommendations.
+- `learning`, `testFirst`, `requireQa`, `security` — ask once, with recommendations
+  (`testFirst: auto` and `sessionTaskBudget: 3` keep token cost down; see `references/config.md`).
 
 ## 4. GitHub (task issues need it)
 

@@ -15,8 +15,9 @@ simple `npm run x`, `npx tool args`, `python -m x` forms.
 | `static` | /n-review | Whole-repo analyzers run before the LLM review | see below |
 | `mutation` | /n-test | Mutation command; `{files}` = changed source files | `npx stryker run --mutate {files}` |
 | `tasks` | everything | `github` (issues) | `github` |
-| `testFirst` | /n-build | `always` · `never` · `ask` (per batch) | `ask` |
-| `learning` | /n-build | Write a learning entry per task | `true` |
+| `testFirst` | /n-build | `auto` (tests-first only for tasks labeled `tdd`: logic-heavy) · `always` · `never` · `ask` (per batch). Skipping it removes a whole test-writer subagent run. | `auto` |
+| `sessionTaskBudget` | /n-build | Tasks per session before it stops and asks you to `/clear` (context is re-billed every turn) | `3` |
+| `learning` | /n-build | Write a learning entry per task (one doc each). This is the learning feature, so it stays on unless the project is throwaway. | `true` |
 | `requireQa` | gate | Require a QA record to ship | `true` |
 | `security` | /nstack, /n-ship | `always` · `never` · `ask` for /n-secure | `ask` |
 | `migrationPaths` | gate, /n-review | Regex for migration files | default covers common ORMs |

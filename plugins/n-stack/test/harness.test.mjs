@@ -231,3 +231,61 @@ test('bin shims run from any shell path form (Git Bash /c/... paths included)', 
 });
 
 function pathToFile(p) { return new URL(`file:///${p.replace(/\\/g, '/').replace(/^\//, '')}`).href; }
+
+// ---------- token-budget helpers ----------
+const { classify } = await import(pathToFile(path.join(PLUGIN, 'lib', 'diffrisk.mjs')));
+
+test('diff risk: only risky, out-of-scope, large or shrunk-test files need opening', () => {
+  const ch = (file, added, deleted, status = 'M') => ({ file, added, deleted, status });
+  const r = classify([
+    ch('src/ui/Button.tsx', 12, 3),
+    ch('src/auth/session.ts', 5, 1),
+    ch('src/other/helper.ts', 4, 0),
+    ch('db/migrations/001_init.sql', 20, 0),
+    ch('package.json', 2, 0),
+    ch('src/big.ts', 200, 10),
+    ch('src/money.test.ts', 2, 9),
+    ch('src/gone.test.ts', 0, 30, 'D'),
+    ch('.github/workflows/ci.yml', 1, 1),
+  ], { scope: ['src/ui', 'src/auth', 'src/big.ts', 'src/money.test.ts', 'src/gone.test.ts', 'db', 'package.json', '.github'] });
+  const reasons = Object.fromEntries(r.open.map((o) => [o.file, o.reasons]));
+  assert.deepEqual(r.skim, ['src/ui/Button.tsx']);
+  assert.deepEqual(reasons['src/auth/session.ts'], ['risky-path']);
+  assert.deepEqual(reasons['src/other/helper.ts'], ['outside-scope']);
+  assert.ok(reasons['db/migrations/001_init.sql'].includes('migration'));
+  assert.deepEqual(reasons['package.json'], ['dependencies']);
+  assert.deepEqual(reasons['src/big.ts'], ['large']);
+  assert.deepEqual(reasons['src/money.test.ts'], ['tests-shrunk']);
+  assert.deepEqual(reasons['src/gone.test.ts'], ['tests-shrunk']);
+  assert.deepEqual(reasons['.github/workflows/ci.yml'], ['infra']);
+  // no scope given → "outside-scope" never fires
+  assert.deepEqual(classify([ch('src/other/helper.ts', 4, 0)]).open, []);
+  // a bad migrationPaths regex in config must not crash the check
+  assert.deepEqual(classify([ch('src/a.ts', 1, 0)], { migrationPaths: '(' }).skim, ['src/a.ts']);
+});
+
+test('nstack diff: working tree incl. untracked files, honours config and --scope', () => {
+  const root = makeRepo();
+  write(root, 'src/money.ts', 'export function round(n: number) { return Math.round(n); }\n');
+  write(root, 'src/auth/login.ts', 'export const login = 1;\nexport const x = 2;\n');
+  write(root, 'src/ui/Card.tsx', 'export const Card = 1;\n');
+  const run = (...a) => sh(process.execPath, [path.join(PLUGIN, 'lib', 'main.cjs'), 'diff', ...a], root);
+  const all = run();
+  assert.equal(all.code, 0, all.out);
+  assert.match(all.out, /DIFF: 3 file\(s\)/);
+  assert.match(all.out, /src\/auth\/login\.ts\s+\+2 -0\s+\[risky-path\]/);
+  assert.match(all.out, /SKIM-OK \(2\): .*src\/money\.ts/);
+  const scoped = run('--scope', 'src/money.ts,src/auth');
+  assert.match(scoped.out, /src\/ui\/Card\.tsx\s+\+1 -0\s+\[outside-scope\]/);
+  assert.equal(run('--base', 'no-such-ref').code, 1);
+  // clean tree
+  git(root, 'add', '-A'); git(root, 'commit', '-qm', 'x');
+  assert.match(run().out, /no changes/);
+});
+
+test('nstack tasks: tdd label is parsed from issue labels', async () => {
+  const { parseTask } = await import(pathToFile(path.join(PLUGIN, 'lib', 'tasks.mjs')));
+  const mk = (names) => parseTask({ number: 1, title: 't', state: 'OPEN', labels: names.map((name) => ({ name })), body: '' });
+  assert.equal(mk(['n-task', 'model:sonnet', 'tdd']).tdd, true);
+  assert.equal(mk(['n-task', 'model:sonnet']).tdd, false);
+});

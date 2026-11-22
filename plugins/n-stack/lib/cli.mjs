@@ -7,6 +7,7 @@ import { projectRoot, git, eventsFile, logEvent, exec } from './common.mjs';
 import { generate as generateCodemap } from './codemap.mjs';
 import { checkDocs, stampDoc } from './docs.mjs';
 import * as tasks from './tasks.mjs';
+import { diffRisk, formatRisk, DEFAULT_MAX_LINES } from './diffrisk.mjs';
 
 const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const KIT = path.join(PLUGIN_ROOT, 'project-kit');
@@ -19,7 +20,7 @@ function cmdTasks(root, [sub = 'ready', ...rest]) {
   if (['show', 'start', 'built', 'block', 'reset'].includes(sub) && !/^\d+$/.test(rest[0] || '')) {
     die(`usage: nstack-tasks ${sub} <issue number>${sub === 'built' ? ' [sha]' : sub === 'block' ? ' <reason>' : ''}`);
   }
-  const fmt = (t) => `#${String(t.number).padEnd(4)} ${t.status.padEnd(7)} ${t.model.padEnd(6)} ${t.size.padEnd(2)} deps:${t.deps.length ? t.deps.map((d) => `#${d}`).join(',') : '-'}  ${t.title}${t.trusted ? '' : '  [UNTRUSTED AUTHOR]'}`;
+  const fmt = (t) => `#${String(t.number).padEnd(4)} ${t.status.padEnd(7)} ${t.model.padEnd(6)} ${t.size.padEnd(2)} ${t.tdd ? 'tdd' : '   '} deps:${t.deps.length ? t.deps.map((d) => `#${d}`).join(',') : '-'}  ${t.title}${t.trusted ? '' : '  [UNTRUSTED AUTHOR]'}`;
   switch (sub) {
     case 'ready': {
       const all = tasks.loadTasks(root);
@@ -204,6 +205,15 @@ function cmdRetro(root, args) {
   }
 }
 
+// ---------- nstack-diff ----------
+function cmdDiff(root, args) {
+  const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
+  const scope = (opt('--scope') || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const maxLines = Number(opt('--max-lines')) || DEFAULT_MAX_LINES;
+  try { console.log(formatRisk(diffRisk(root, { base: opt('--base') || 'HEAD', scope, maxLines }))); }
+  catch (e) { die(`nstack-diff: ${e.message}`, 1); }
+}
+
 // ---------- nstack-wt ----------
 function cmdWt(root, [sub = 'list', ...rest]) {
   const dir = path.join(path.dirname(root), `.${path.basename(root)}-worktrees`);
@@ -240,6 +250,7 @@ export function run(command, args) {
       case 'event': return cmdEvent(root, args);
       case 'retro': return cmdRetro(root, args);
       case 'wt': return cmdWt(root, args);
+      case 'diff': return cmdDiff(root, args);
       default: return die(`unknown command ${command}`);
     }
   } catch (e) {

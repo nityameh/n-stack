@@ -10,6 +10,13 @@ Order matters: machines catch the mechanical problems for free, so the expensive
 spends its attention on logic. The reviewer did not write the code, so it doesn't share the
 author's blind spots.
 
+## 0. Fresh session
+
+Review once per milestone or branch, not per task, and not inside a long build session: the
+reviewer needs files, not chat history, and old context is re-billed on every turn. If this
+conversation already holds build work, tell the user to `/clear` and re-run `/n-review`
+(branch, commits and the task issues carry everything).
+
 ## 1. Scope and inputs (files, so the reviewer stays read-only)
 
 ```bash
@@ -46,7 +53,8 @@ tested.
 
 ## 5. Act
 
-Present findings P0 → P2 (≤ 15), then AskUserQuestion: **Fix all P0/P1 now (recommended) ·
+Present P0/P1 in full and P2 as one line each (the full text lives in the record, step 6),
+then AskUserQuestion: **Fix all P0/P1 now (recommended) ·
 Pick which · Report only**. Fixes: mechanical → `n-stack:n-implementer` (sonnet) with a brief;
 subtle → yourself. Behaviour changes get a test. Commit `fix(review): <what>` (the ship gate
 accepts these after the reviewed commit).

@@ -19,7 +19,7 @@
 - **Compress at boundaries:** subagents return fixed-shape summaries, never raw output.
 - **Durable state in files:** plans, decisions and progress go to files so a fresh session
   (cheaper, uncluttered) can resume.
-- **Fresh context for fresh work:** after ~6 tasks or a big exploration, start a new session.
+- **Fresh context for fresh work:** after `sessionTaskBudget` (~3) tasks or a big exploration, `/clear`.
 - **Order matters:** stable instructions first, task-specific details last.
 
 ## Description field (decides triggering)

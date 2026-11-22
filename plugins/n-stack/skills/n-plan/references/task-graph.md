@@ -18,6 +18,7 @@ JSON spec and `nstack-tasks create` turns it into issues, labels and milestones,
       "milestone": "M1",
       "model": "opus",
       "size": "M",
+      "tdd": true,
       "stories": ["US-2"],
       "depends_on": [],
       "goal": "Sessions can be created and looked up; expired ones are never returned.",
@@ -56,6 +57,11 @@ JSON spec and `nstack-tasks create` turns it into issues, labels and milestones,
 | `me` | The user builds it to learn; n-stack writes the brief and reviews the result |
 
 The first task that establishes a pattern is `opus`; later tasks copying it are `sonnet`.
+
+**`tdd: true`** (becomes the `tdd` label) only on tasks where a wrong answer is plausible and
+silent: filters, calculations, permissions, parsing, state machines, claims/eligibility rules.
+Mechanical tasks (UI wiring, config, copy, renames, glue) leave it off: `/n-build` with
+`testFirst: auto` then skips the separate test-writer run for them, which saves a subagent.
 
 ## Status (labels, managed by `nstack-tasks`)
 
